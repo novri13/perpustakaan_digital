@@ -1,0 +1,17 @@
+<?php
+
+namespace App\Filament\Pustakawan\Resources\JurusanResource\Pages;
+
+use App\Filament\Pustakawan\Resources\JurusanResource;
+use Filament\Actions;
+use Filament\Resources\Pages\CreateRecord;
+
+class CreateJurusan extends CreateRecord
+{
+    protected static string $resource = JurusanResource::class;
+
+    protected function getRedirectUrl(): string
+    {
+        return static::getResource()::getUrl('index');
+    }
+}
