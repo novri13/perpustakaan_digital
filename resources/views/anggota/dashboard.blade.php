@@ -4,271 +4,198 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dashboard Anggota - Perpustakaan Digital</title>
-  <!-- Font Awesome -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-  <!-- Bootstrap & FontAwesome -->
+
+  <!-- Bootstrap CSS & Font Awesome -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
-    }
-
-    body {
+    html, body {
+      height: 100%;
       margin: 0;
-      background-color: #f5f5f5;
-    }
-
-    header {
-      background-color: #ddd;
-      padding: 15px 20px;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #aaa;
+      flex-direction: column;
+      background-color: #f8f9fa;
     }
 
-    header .logo {
+    .main-container {
+      flex: 1;
+      display: flex;
+    }
+
+    .sidebar {
+      width: 240px;
+      background: linear-gradient(180deg, #0d6efd, #084298);
+      color: #fff;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .sidebar h4 {
+      font-size: 18px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .sidebar .nav-link {
+      color: #cfd8dc;
+      padding: 12px 15px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar .nav-link:hover,
+    .sidebar .nav-link.active {
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
       font-weight: bold;
     }
 
-    header .menu {
-      display: flex;
-      gap: 20px;
-    }
-
-    header .menu span {
-      cursor: pointer;
-    }
-
-    .breadcrumb {
-      background-color: #aaa;
-      color: white;
-      padding: 10px 20px;
-      font-size: 14px;
-    }
-
-    .container {
-      display: flex;
-    }
-
-    aside {
-      width: 220px;
-      background-color: #eee;
-      padding: 20px;
-      height: calc(100vh - 130px);
-    }
-
-    aside .menu-item {
-      display: flex;
-      align-items: center;
-      padding: 10px;
-      background-color: #ccc;
-      margin-bottom: 10px;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-
-    aside .menu-item.active {
-      background-color: #999;
+    .sidebar .nav-link i {
+      width: 20px;
+      text-align: center;
     }
 
     main {
       flex: 1;
-      padding: 20px;
+      padding: 30px;
     }
 
-    .search-bar {
+    .card-custom {
+      background: #fff;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .breadcrumb-custom {
+      background: #e9ecef;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
       margin-bottom: 20px;
-    }
-
-    .search-bar input {
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-    }
-
-    .card {
-      background-color: white;
-      padding: 20px;
-      border: 1px solid #aaa;
-      border-radius: 5px;
-    }
-
-    .card h2 {
-      margin-top: 0;
-    }
-
-    .card ul {
-      padding-left: 20px;
-    }
-
-    footer {
-      background-color: #444;
-      color: white;
-      padding: 20px;
       display: flex;
       justify-content: space-between;
-      font-size: 14px;
+      align-items: center;
     }
 
-    footer div {
-      max-width: 33%;
+    footer.footer-custom {
+      background: #fff;
+      border-top: 1px solid #ddd;
+      padding: 15px 30px;
+      font-size: 14px;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    @media (max-width: 768px) {
+      .main-container {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        min-height: auto;
+      }
     }
   </style>
 </head>
 <body>
 
+  {{-- NAVBAR --}}
+  @include('layouts.partials.navbar')
 
-   <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-4 py-2">
-  <div class="container-fluid">
-    <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
-      <img src="{{ asset('images/logo_perpus.png') }}" alt="Logo" width="50" class="me-2">
-      <div class="lh-sm">
-        <span class="fw-bold">Perpustakaan Digital</span><br>
-        <small>SMA Negeri 1 Bengkulu Selatan</small>
-      </div>
-    </a>
+  <div class="main-container">
 
-    <div class="ms-auto d-flex align-items-center gap-3">
-      <a class="nav-link" href="{{ route('home') }}">Beranda</a>
-      <a class="nav-link" href="{{ route('denah') }}">Denah Pustaka</a>
-      <a class="nav-link" href="{{ route('pustakawan') }}">Pustakawan</a>
+    {{-- SIDEBAR --}}
+    @include('layouts.partials.sidebar')
 
-      @guest
-        <a class="btn btn-primary" href="{{ route('anggota.login.form') }}">Login</a>
-      @else
-        @php
-          $user = auth()->user();
-          $unreadCount = $user->unreadNotifications->count();
-          $notifications = $user->notifications()->latest()->take(5)->get();
-        @endphp
-
-        <!-- Notifikasi Dropdown -->
-        <div class="dropdown me-3">
-          <a href="#" id="notifDropdown" class="text-dark position-relative" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="fas fa-bell fa-lg"></i>
-            @if($unreadCount > 0)
-              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                {{ $unreadCount }}
-              </span>
-            @endif
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="notifDropdown"
-              style="min-width: 300px; max-height: 350px; overflow-y: auto;">
-            <li class="dropdown-header fw-bold px-3 py-2">Notifikasi Terbaru</li>
-
-            @forelse($notifications as $notif)
-              <li class="px-3 py-2 border-bottom small">
-                <div class="fw-bold">{{ $notif->data['judul'] ?? '-' }}</div>
-                <div class="text-muted">{{ $notif->data['pesan'] ?? '' }}</div>
-                <small class="text-secondary">{{ $notif->created_at->diffForHumans() }}</small>
-              </li>
-            @empty
-              <li class="px-3 py-2 text-muted">Tidak ada notifikasi</li>
-            @endforelse
-
-            <li><hr class="dropdown-divider"></li>
-            <li><span class="dropdown-item text-center small text-muted">Menampilkan 5 notifikasi terakhir</span></li>
-          </ul>
-        </div>
-
-        <!-- Dropdown Profil -->
-        <div class="dropdown">
-          <a href="#" class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
-            @if($user->gambar)
-              <img src="{{ asset('storage/' . $user->gambar) }}" alt="Foto Profil" class="rounded-circle me-2" width="32" height="32">
-            @else
-              <i class="fas fa-user-circle fa-lg me-2"></i>
-            @endif
-            <span class="d-none d-md-inline">{{ $user->name }}</span>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownUser">
-            <li><a class="dropdown-item" href="{{ route('anggota.dashboard') }}">Dashboard</a></li>
-            <li><a class="dropdown-item" href="{{ route('anggota.profil') }}">Profil</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-              <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="dropdown-item">Logout</button>
-              </form>
-            </li>
-          </ul>
-        </div>
-      @endguest
-    </div>
-  </div>
-</nav>
-
-  <div class="breadcrumb">Beranda / Anggota</div>
-
-  <div class="container">
-   <aside class="bg-light p-3 border-end" style="min-height: 100vh; width: 220px;">
-  <nav class="nav flex-column gap-2">
-
-    <a href="{{ route('anggota.dashboard') }}" class="nav-link d-flex align-items-center px-3 py-2 rounded bg-secondary text-white">
-      <i class="fas fa-home me-2"></i> Dashboard
-    </a>
-
-    <a href="{{ route('anggota.profil') }}" class="nav-link d-flex align-items-center px-3 py-2 rounded text-dark">
-      <i class="fas fa-user me-2"></i> Profile
-    </a>
-
-    <a href="{{ route('anggota.history-transaksi') }}" class="nav-link d-flex align-items-center px-3 py-2 rounded text-dark">
-      <i class="fas fa-book-open me-2"></i> Riwayat Peminjaman
-    </a>
-
-    <form action="{{ route('logout') }}" method="POST" class="w-100 m-0">
-      @csrf
-      <button type="submit" class="nav-link d-flex align-items-center px-3 py-2 rounded text-dark w-100 bg-transparent border-0 text-start">
-        <i class="fas fa-sign-out-alt me-2"></i> Logout
-      </button>
-    </form>
-
-  </nav>
-</aside>
-
-
+    {{-- MAIN CONTENT --}}
     <main>
-      {{-- <div class="search-bar">
-        <input type="text" placeholder="🔍 Masukkan Kata Kunci Untuk Mencari Buku"/>
-      </div> --}}
-
-      <div class="card">
-        <h2>Dashboard Anggota</h2>
-        <p><strong>Selamat Datang, {{ auth()->user()->name }}</strong></p>
-        <p><strong>Catatan :</strong></p>
-        <ul>
-          <li>Anda dapat melakukan peminjaman buku dengan tempo yang sudah ditentukan.</li>
-          <li>Anda dapat melakukan perpanjangan tempo peminjaman buku sebanyak 1 (satu) kali, dengan tempo yang sudah ditentukan.</li>
-          <li>Saat melakukan pengembalian buku, harap mengembalikan buku sesuai waktu peminjaman lamanya 7 hari dan dapat diperpanjang 7 hari lagi (harus konfirmasi dengan petugas perpustakaan).</li>
-          <li>Harap jaga buku dengan baik saat dibawa pulang ke rumah.</li>
-        </ul>
+      <!-- Breadcrumb -->
+      <div class="breadcrumb-custom">
+        <div><i class="fas fa-home me-1"></i> Dashboard / Anggota</div>
+        <div class="d-flex flex-column align-items-end">
+          <div class="d-flex align-items-center">
+            <i class="fas fa-clock me-1 text-secondary"></i>
+            <span id="live-time" class="fw-semibold"></span>
+          </div>
+          <small class="text-muted">
+            {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('l, d F Y') }}
+          </small>
+        </div>
       </div>
+
+      <!-- Kartu Sambutan -->
+      <div class="card-custom mb-4 border-start border-4 border-primary ps-4 pt-3">
+        <h2 class="mb-3 fw-bold">Dashboard Anggota</h2>
+        <p class="fs-5">Selamat Datang, <strong>{{ auth()->user()->name }}</strong></p>
+
+        <!-- Kartu Statistik -->
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+              <i class="fa-solid fa-calendar-days fa-2x mb-2 text-warning"></i>
+              <h6 class="text-muted">Booking Buku</h6>
+              <h3 class="fw-bold text-dark">{{ $totalBooking }}</h3>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+              <i class="fa-solid fa-book-open-reader fa-2x mb-2 text-primary"></i>
+              <h6 class="text-muted">Dipinjam</h6>
+              <h3 class="fw-bold text-dark">{{ $totalDipinjam }}</h3>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+              <i class="fa-solid fa-rotate-left fa-2x mb-2 text-success"></i>
+              <h6 class="text-muted">Dikembalikan</h6>
+              <h3 class="fw-bold text-dark">{{ $totalDikembalikan }}</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+        <div class="mt-3">
+          <p class="fw-semibold text-dark">Catatan Penting:</p>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">📚 Anda dapat melakukan peminjaman buku dengan tempo yang sudah ditentukan.</li>
+            <li class="list-group-item">⏳ Perpanjangan peminjaman hanya bisa 1x (maksimal total 14 hari).</li>
+            <li class="list-group-item">⚠️ Pengembalian harus tepat waktu untuk menghindari denda.</li>
+            <li class="list-group-item">📖 Harap jaga buku dengan baik selama masa peminjaman.</li>
+          </ul>
+        </div>
+      </div>
+
     </main>
   </div>
 
-  <footer>
-    <div>
-      <img src="{{ asset('images/logo_perpus.png') }}" alt="logo" width="60" class="d-block mx-auto mb-2">
-      <strong>SMA NEGERI 1 BENGKULU SELATAN</strong><br>
-      Alamat: Jln. Pangeran Duayu Manna
-    </div>
-    <div>
-      <strong>Tentang Kami</strong><br>
-      Perpustakaan digital SMANSA menyajikan beragam koleksi buku, memenuhi kebutuhan anggota untuk sumber belajar dan referensi.
-    </div>
-    <div>
-      <strong>Kontak</strong><br>
-      Telp: (0739)21296 / Fax: (0739)2268<br>
-      E-Mail: smanegeri1bs@gmail.com<br>
-      Website: <a href="#" style="color: white;">https://sman1bs.sch.id/</a>
-    </div>
-  </footer>
+  {{-- FOOTER --}}
+  @include('layouts.partials.footer')
 
-   <!-- JS Bootstrap -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function updateTime() {
+      let now = new Date();
+      let jam = now.getHours().toString().padStart(2, '0');
+      let menit = now.getMinutes().toString().padStart(2, '0');
+      let detik = now.getSeconds().toString().padStart(2, '0');
+      document.getElementById("live-time").innerText = `${jam}:${menit}:${detik}`;
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+  </script>
 
 </body>
 </html>

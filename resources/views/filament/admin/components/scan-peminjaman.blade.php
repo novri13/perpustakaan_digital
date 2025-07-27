@@ -21,7 +21,7 @@
   <p class="mt-2">Hasil scan anggota: <span id="hasil-anggota">-</span></p>
   <p class="mt-2">Hasil scan buku: <span id="hasil-buku">-</span></p>
 </div>
-
+<script src="{{asset('js/jquery.js')}}"></script>
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -39,6 +39,26 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("scan-result-anggota").value = decodedText;
             hasilAnggota.textContent = decodedText;
             alert("Anggota terdeteksi: " + decodedText);
+
+            //disini ajax
+            $.ajax(
+            {
+              url     : '<?php echo url("/admin/qrcode/get_data") ?>' + decodedText,
+              //dataType: 'JSON',
+              type    : 'GET',
+              data    :  {
+                 
+              },
+              success : function(data)
+              {
+               alert(data);
+              }, 
+              error : function(){
+                console.log('error list');
+              }
+            });
+            //disini ajax
+
         } else if (currentMode === "buku") {
             document.getElementById("scan-result-buku").value = decodedText;
             hasilBuku.textContent = decodedText;

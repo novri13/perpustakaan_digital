@@ -19,6 +19,17 @@ class JurusanResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-academic-cap';
     protected static ?string $navigationGroup = 'Data Master';
     protected static ?string $navigationLabel = 'Jurusan';
+    protected static ?int $navigationSort = 4;
+
+    public static function getLabel(): ?string
+    {
+        return 'Jurusan';
+    }
+
+    public static function getPluralLabel(): ?string
+    {
+        return 'Jurusan';
+    }
 
     public static function form(Form $form): Form
     {
@@ -68,10 +79,18 @@ class JurusanResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                ->modalHeading('Hapus Jurusan')
+                ->modalDescription('Apakah Anda yakin ingin menghapus jurusan ini? Tindakan ini tidak dapat dibatalkan.')
+                ->modalSubmitActionLabel('Ya, Hapus')
+                ->modalCancelActionLabel('Batal'),
             ])
             ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+                Tables\Actions\DeleteBulkAction::make()
+                ->modalHeading('Hapus Beberapa Jurusan')
+                ->modalDescription('Apakah Anda yakin ingin menghapus semua jurusan yang dipilih?')
+                ->modalSubmitActionLabel('Ya, Hapus Semua')
+                ->modalCancelActionLabel('Batal'),
             ]);
     }
 

@@ -14,6 +14,12 @@ class ListPengembalians extends ListRecords
     {
         return [
                 // Actions\CreateAction::make(),
+                
             ];
+    }
+
+    protected function getHeaderTitle(): string
+    {
+        return 'Pengembalian Buku'; // ✅ Ubah judul di atas
     }
 }

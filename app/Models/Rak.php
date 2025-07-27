@@ -22,4 +22,9 @@ class Rak extends Model
     {
         return $this->hasMany(Kategori::class, 'rak_id');
     }
+
+    public function bukus()
+    {
+    return $this->hasMany(Buku::class, 'rak_id', 'id');;
+    }   
 }

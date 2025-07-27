@@ -12,18 +12,28 @@ class Denda extends Model
     protected $table = 'denda'; 
 
     protected $fillable = [
-        'lama_waktu',
+        'jenis_denda',
         'harga',
     ];
 
-    // Relasi ke Peminjaman atau Pengembalian (jika ada)
+    /**
+     * Relasi ke Peminjaman (jika peminjaman punya kolom denda_id)
+     */
     public function peminjaman()
     {
-        return $this->hasMany(Peminjaman::class);
+        return $this->hasMany(Peminjaman::class, 'denda_id');
     }
 
+    /**
+     * Relasi ke Pengembalian (jika pengembalian punya kolom denda_id)
+     */
     public function pengembalian()
     {
-        return $this->hasMany(Pengembalian::class);
+        return $this->hasMany(Pengembalian::class, 'denda_id');
+    }
+
+    public function transaksiDenda()
+    {
+    return $this->hasMany(TransaksiDenda::class, 'denda_id');
     }
 }

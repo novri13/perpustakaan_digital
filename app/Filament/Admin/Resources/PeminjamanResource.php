@@ -4,6 +4,9 @@ namespace App\Filament\Admin\Resources;
 
 use App\Filament\Admin\Resources\PeminjamanResource\Pages;
 use App\Models\Peminjaman;
+use App\Models\Anggota;
+use App\Models\Buku;
+use App\Models\TransaksiDenda;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Components\View;
@@ -14,8 +17,11 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Actions\ViewAction;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\Action;
+use Carbon\Carbon;
+
 
 class PeminjamanResource extends Resource
 {
@@ -25,36 +31,45 @@ class PeminjamanResource extends Resource
     protected static ?string $navigationGroup = 'Transaksi';
     protected static ?string $navigationLabel = 'Peminjaman Buku';
 
+    public static function getLabel(): ?string
+    {
+        return 'Peminjaman Buku';
+    }
+
+    public static function getPluralLabel(): ?string
+    {
+        return 'Peminjaman Buku';
+    }
+
     public static function form(Form $form): Form
     {
         return $form->schema([
+            // Scan QR Code untuk peminjaman
             View::make('filament.admin.components.scan-peminjaman'),
 
-             //Hanya menampilkan anggota aktif
             Select::make('anggota_id')
-            ->label('Anggota Aktif')
-            ->options(
-                \App\Models\Anggota::where('status', 'aktif')
-                    ->get()
-                    ->mapWithKeys(fn($anggota) => [
-                        $anggota->id => "{$anggota->nama} ({$anggota->id})"
-                    ])
-            )
-            ->searchable()
-            ->required(),
+                ->label('Anggota Aktif')
+                ->options(
+                    Anggota::where('status', 'aktif')
+                        ->get()
+                        ->mapWithKeys(fn ($anggota) => [
+                            $anggota->id => "{$anggota->nama} - {$anggota->id}"
+                        ])
+                )
+                ->searchable()
+                ->required(),
 
-            //Hanya menampilkan buku dengan stok > 0
             Select::make('buku_id')
-            ->label('Buku (Stok Tersedia)')
-            ->options(
-                \App\Models\Buku::where('stok', '>', 0)
-                    ->get()
-                    ->mapWithKeys(fn($buku) => [
-                        $buku->id => "{$buku->judul} (Stok: {$buku->stok})"
-                    ])
-            )
-            ->searchable()
-            ->required(),
+                ->label('Buku (Stok Tersedia)')
+                ->options(
+                    Buku::where('stok', '>', 0)
+                        ->get()
+                        ->mapWithKeys(fn($buku) => [
+                            $buku->id => "{$buku->judul} (Stok: {$buku->stok})"
+                        ])
+                )
+                ->searchable()
+                ->required(),
 
             TextInput::make('jumlah_buku')
                 ->label('Jumlah Buku')
@@ -77,104 +92,153 @@ class PeminjamanResource extends Resource
                 ->options([
                     'dipinjam' => 'Dipinjam',
                     'diperpanjang' => 'Diperpanjang',
+                    'pending' => 'Pending',
                     'kembali' => 'Dikembalikan',
                 ])
-                ->default('dipinjam')
-                ->required(),
-
-            Select::make('denda_id')
-                ->label('Denda (Jika Ada)')
-                ->relationship('denda', 'harga')
-                ->nullable()
-                ->hidden(fn ($get) => $get('status') !== 'kembali'),
+                ->default('dipinjam'),
         ]);
     }
 
     public static function table(Table $table): Table
-{
-    return $table->columns([
-        // Kode Pinjam hasil generate dari id
-        TextColumn::make('kode_peminjaman')
-            ->label('Kode Pinjam')
-            ->getStateUsing(fn ($record) => 'P' . str_pad($record->id, 6, '0', STR_PAD_LEFT))
-            ->sortable()
-            ->searchable(),
+    {
+        static::cekDanBuatDenda();
 
-        // ID Anggota
-        TextColumn::make('anggota.id') // pastikan kolom ini ada di tabel `anggota`
-            ->label('NIP/NISN')
-            ->searchable(),
+        return $table
+        // ✅ FILTER OTOMATIS: hanya tampilkan yang belum selesai
+            ->query(
+                Peminjaman::query()
+                    ->where(function ($q) {
+                        $q->where('status', '!=', 'kembali')     // jangan tampilkan yang sudah dikembalikan
+                          ->orWhere('status_denda', '!=', 'lunas'); // kalau dendanya belum lunas tetap tampil
+                    })
+                    ->with(['anggota', 'buku']) // eager loading untuk mempercepat
+            )
+        
+        ->columns([
+            TextColumn::make('kode_peminjaman')
+                ->label('Kode Pinjam')
+                ->getStateUsing(fn ($record) => 'P' . str_pad($record->id, 6, '0', STR_PAD_LEFT))
+                ->sortable()
+                ->searchable(),
 
-        // Nama Peminjam
-        TextColumn::make('anggota.nama')
-            ->label('Nama Peminjam')
-            ->searchable(),
+            TextColumn::make('anggota.id')->label('NIP/NISN')->searchable(),
+            TextColumn::make('anggota.nama')->label('Nama Peminjam')->searchable(),
+            TextColumn::make('buku.judul')->label('Judul Buku'),
+            TextColumn::make('jumlah_buku')->label('Jumlah Buku'),
 
-        // Tanggal Pinjam
-        TextColumn::make('tanggal_pinjam')
-            ->label('Tanggal Pinjam')
-            ->date('d-m-Y'),
+            TextColumn::make('tanggal_pinjam')->label('Tanggal Pinjam')->date('d-m-Y'),
+            TextColumn::make('tanggal_kembali')->label('Jatuh Tempo')->date('d-m-Y'),
 
-        // Jatuh Tempo
-        TextColumn::make('tanggal_kembali')
-            ->label('Jatuh Tempo')
-            ->date('d-m-Y'),
+            TextColumn::make('tanggal_dikembalikan')
+                ->label('Tanggal Dikembalikan')
+                ->date('d-m-Y')
+                ->placeholder('-'),
 
-        // Jumlah Buku
-        TextColumn::make('jumlah_buku')
-            ->label('Jumlah Buku'),
+            TextColumn::make('status')
+                ->label('Status')
+                ->badge()
+                ->color(fn ($state) => match ($state) {
+                    'dipinjam' => 'warning',
+                    'diperpanjang' => 'info',
+                    'pending' => 'danger',
+                    'kembali' => 'success',
+                    default => 'gray',
+                }),
 
-        // Denda
-        TextColumn::make('denda.harga')
-            ->label('Denda')
-            ->formatStateUsing(fn ($state) => $state ? 'Rp ' . number_format($state, 0, ',', '.') : 'Tidak ada Denda'),
+            TextColumn::make('status_denda')
+                ->label('Status Denda')
+                ->badge()
+                ->color(fn ($state) => $state === 'lunas' ? 'success' : 'danger')
+                ->formatStateUsing(fn ($state) => $state === 'lunas' ? 'Lunas' : 'Belum Lunas'),
+        ])
+        ->actions([
+            Action::make('detail')
+                ->label('Detail')
+                ->icon('heroicon-o-eye')
+                ->modalHeading('Detail Peminjaman')
+                ->modalSubmitAction(false)
+                ->modalCancelActionLabel('Tutup')
+                ->modalContent(fn ($record) => view('filament.admin.components.peminjaman-detail', [
+                    'record' => $record,
+                ])),
 
-        // Status
-        TextColumn::make('status')
-            ->label('Status')
-            ->badge()
-            ->color(fn ($state) => match ($state) {
-                'dipinjam' => 'warning',
-                'diperpanjang' => 'info',
-                'kembali' => 'success',
-                default => 'gray',
-            }),
-    ])
-    ->actions([
-        // Detail Modal (View Only)
-                Action::make('detail')
-                    ->label('Detail')
-                    ->icon('heroicon-o-eye')
-                    ->modalHeading('Detail Peminjaman')
-                    ->modalSubmitAction(false)
-                    ->modalCancelActionLabel('Tutup')
-                    ->modalContent(fn ($record) => view('filament.admin.components.peminjaman-detail', [
-                        'record' => $record,
-                    ])),
+            Action::make('perpanjang')
+                ->label('Perpanjang 7 Hari')
+                ->icon('heroicon-o-arrow-path-rounded-square')
+                ->color('info')
+                ->visible(fn ($record) => $record->status !== 'kembali')
+                ->requiresConfirmation()
+                ->action(function ($record) {
+                    $record->update([
+                        'status' => 'diperpanjang',
+                        'tanggal_kembali' => Carbon::parse($record->tanggal_kembali)->addDays(7),
+                    ]);
+                }),
+            
+            Action::make('kembalikan')
+                ->label('Kembalikan Buku')
+                ->icon('heroicon-o-check-circle')
+                ->color('success')
+                ->visible(fn ($record) => $record->status !== 'kembali')
+                ->requiresConfirmation()
+                ->action(function ($record) {
+                    $adaDendaBelumLunas = $record->transaksiDenda()
+                        ->where('status_bayar', 'belum')
+                        ->exists();
 
-    // Perpanjang hanya jika belum dikembalikan
-    Tables\Actions\Action::make('perpanjang')
-        ->label('Perpanjang')
-        ->icon('heroicon-o-arrow-path-rounded-square')
-        ->color('info')
-        ->visible(fn ($record) => $record->status !== 'kembali')
-        ->requiresConfirmation()
-        ->action(function ($record) {
-            $record->update([
-                'status' => 'diperpanjang',
-                'tanggal_kembali' => now()->addDays(7),
+                    if ($adaDendaBelumLunas) {
+                        // ✅ Kalau ada denda belum lunas, jadi pending
+                        $record->update(['status' => 'pending']);
+                    } else {
+                        // ✅ Tambahkan stok langsung jika tidak ada denda
+                        $buku = Buku::find($record->buku_id);
+                        if ($buku) {
+                            $buku->stok += $record->jumlah_buku;
+                            $buku->save();
+                        }
+
+                        $record->update([
+                            'status' => 'kembali',
+                            'tanggal_dikembalikan' => now(),
+                            'status_denda' => 'lunas'
+                        ]);
+                    }
+                }),
+
+            DeleteAction::make()
+                ->label('Hapus')
+                ->visible(fn ($record) => $record->status !== 'kembali')
+                ->before(function ($record) {
+                    $record->buku->increment('stok', $record->jumlah_buku);
+                }),
+        ])
+        ->bulkActions([
+            DeleteBulkAction::make(),
+        ]);
+    }
+
+    protected static function cekDanBuatDenda()
+    {
+        $peminjamanTerlambat = Peminjaman::whereIn('status', ['dipinjam','diperpanjang'])
+            ->whereDate('tanggal_kembali', '<', now())
+            ->get();
+
+        foreach ($peminjamanTerlambat as $p) {
+            $hariTerlambat = $p->hitungTerlambatHari();
+
+            $existingDenda = $p->transaksiDenda()->where('status_bayar', 'belum')->exists();
+            if ($existingDenda) continue;
+
+            $jumlahDenda = $hariTerlambat * 1000; // contoh Rp1000/hari
+            TransaksiDenda::create([
+                'peminjaman_id' => $p->id,
+                'jumlah_denda'  => $jumlahDenda,
+                'status_bayar'  => 'belum',
             ]);
-        }),
 
-    // Hapus hanya jika belum dikembalikan
-    Tables\Actions\DeleteAction::make()
-        ->label('Hapus')
-        ->visible(fn ($record) => $record->status !== 'kembali'),
-    ])
-    ->bulkActions([
-        Tables\Actions\DeleteBulkAction::make(),
-    ]);
-}
+            $p->update(['status_denda' => 'belum_lunas']);
+        }
+    }
 
 
     public static function getPages(): array
@@ -188,6 +252,7 @@ class PeminjamanResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return auth()->user()?->hasRole('admin');
+        return auth()->user()?->hasRole(['admin','pustakawan']);
     }
+    //1
 }

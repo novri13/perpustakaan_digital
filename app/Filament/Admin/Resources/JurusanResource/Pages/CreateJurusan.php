@@ -15,18 +15,18 @@ class CreateJurusan extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // Jika kosong, auto-generate ID jurusan
+        // Jika ID dikosongkan → auto generate
         if (empty($data['id'])) {
             $data['id'] = $this->generateNextJurusanId();
         } else {
-            // Validasi format ID manual (harus J + 3 angka)
+            // Validasi format ID manual (harus J001, J002, dst)
             if (!preg_match('/^J\d{3}$/', $data['id'])) {
                 throw ValidationException::withMessages([
                     'id' => 'Format ID Jurusan harus seperti J001, J002, dst.',
                 ]);
             }
 
-            // Validasi unik
+            // Pastikan tidak duplikat
             if (Jurusan::where('id', $data['id'])->exists()) {
                 throw ValidationException::withMessages([
                     'id' => 'ID Jurusan ' . $data['id'] . ' sudah digunakan.',
@@ -43,19 +43,32 @@ class CreateJurusan extends CreateRecord
     }
 
     /**
-     * Cari ID kosong dulu, kalau tidak ada lanjut urutan terakhir
+     * Cari ID kosong terdekat, contoh:
+     * - Jika J001, J003 ada → pilih J002
+     * - Jika semua urut → lanjut J004
      */
     private function generateNextJurusanId(): string
     {
-        $allIds = Jurusan::pluck('id')->toArray();
+        $existingIds = Jurusan::pluck('id')->toArray();
 
         $nextNumber = 1;
         while (true) {
             $candidate = 'J' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
-            if (! in_array($candidate, $allIds)) {
-                return $candidate; // pakai yang kosong
+            if (!in_array($candidate, $existingIds)) {
+                return $candidate; // pakai slot kosong
             }
             $nextNumber++;
         }
+    }
+
+    // Hanya tampilkan tombol Create & Cancel (hilangkan Create & create another)
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction()
+                ->label('Simpan')   // Ubah label tombol Create jadi "Simpan"
+                ->submit('create'),
+            $this->getCancelFormAction(),
+        ];
     }
 }

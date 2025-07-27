@@ -4,7 +4,5 @@ return [
     App\Providers\AppServiceProvider::class,
     App\Providers\Filament\AdminPanelProvider::class,
     App\Providers\Filament\AnggotaPanelProvider::class,
-    App\Providers\Filament\KepalaSekolahPanelProvider::class,
-    App\Providers\Filament\PustakawanPanelProvider::class,
     App\Providers\Filament\SuperadminPanelProvider::class,
 ];

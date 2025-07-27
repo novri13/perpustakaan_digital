@@ -13,9 +13,17 @@ class AnggotaController extends Controller
 {
     public function index()
     {
-          $user = Auth::user(); 
+         $user = Auth::user();
+        $anggota = $user->anggota;
 
-        return view('anggota.dashboard', compact('user'));
+        // Hitung jumlah status peminjaman
+        $totalDipinjam = $anggota->peminjaman()->whereIn('status', ['dipinjam', 'diperpanjang'])->count();
+        $totalDikembalikan = $anggota->peminjaman()->whereIn('status', ['kembali', 'selesai'])->count();
+
+        // Hitung jumlah booking
+        $totalBooking = $anggota->bookings()->count();
+
+        return view('anggota.dashboard', compact('user', 'totalBooking', 'totalDipinjam', 'totalDikembalikan'));
     }
 
     public function riwayat()
@@ -35,6 +43,19 @@ class AnggotaController extends Controller
         ->get();
 
     return view('anggota.history-transaksi', compact('peminjamanAktif', 'peminjamanSelesai'));
+    }
+
+    public function riwayatBooking()
+    {
+    $anggota = Auth::user()->anggota;
+
+    // Ambil semua booking milik anggota ini
+    $bookings = $anggota->bookings()
+        ->with('buku')
+        ->orderByDesc('created_at')
+        ->get();
+
+    return view('anggota.bookings.index', compact('bookings'));
     }
 
     public function profile()

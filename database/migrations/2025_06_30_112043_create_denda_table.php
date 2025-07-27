@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('denda', function (Blueprint $table) {
             $table->id();
-            $table->integer('lama_waktu'); 
-            $table->integer('harga'); 
+            $table->string('jenis_denda');
+            $table->decimal('harga', 10, 2); // contoh: 50000.00
             $table->timestamps();
         });
     }

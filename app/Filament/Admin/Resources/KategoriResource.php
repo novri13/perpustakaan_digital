@@ -22,20 +22,41 @@ class KategoriResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?string $navigationGroup = 'Data Master';
-    protected static ?string $navigationLabel = 'Kategori Buku';
+    protected static ?string $navigationLabel = 'Kategori';
+    protected static ?int $navigationSort = 1;
+
+    public static function getLabel(): ?string
+    {
+        return 'Kategori';
+    }
+
+    public static function getPluralLabel(): ?string
+    {
+        return 'Kategori';
+    }
 
     public static function form(Form $form): Form
     {
         return $form->schema([
+            // ✅ ID otomatis seperti K001, K002
             TextInput::make('id')
                 ->label('ID Kategori')
-                ->required()
-                ->maxLength(25),
+                ->default(fn () => self::generateNextKategoriId())
+                ->disabled()
+                ->dehydrated(true),
 
             TextInput::make('name')
                 ->label('Nama Kategori')
                 ->required()
-                ->maxLength(100),
+                ->unique(
+                    table: 'kategori',
+                    column: 'name',
+                    ignoreRecord: true
+                )
+                ->validationMessages([
+                    'required' => 'Nama kategori wajib diisi.',
+                    'unique'   => 'Nama Kategori ini sudah ada, silakan gunakan nama lain.',
+                ]),
 
             FileUpload::make('gambar')
                 ->label('Gambar')
@@ -43,10 +64,26 @@ class KategoriResource extends Resource
                 ->directory('kategori'),
 
             Select::make('rak_id')
+                ->label('Rak Buku')
                 ->options(\App\Models\Rak::pluck('name', 'id')->toArray())
                 ->searchable()
                 ->nullable(),
         ]);
+    }
+
+    /** ✅ Generate ID otomatis seperti K001, K002 */
+    public static function generateNextKategoriId(): string
+    {
+        $allIds = Kategori::pluck('id')->toArray();
+        $nextNumber = 1;
+
+        while (true) {
+            $candidate = 'K' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+            if (!in_array($candidate, $allIds)) {
+                return $candidate;
+            }
+            $nextNumber++;
+        }
     }
 
     public static function table(Table $table): Table
@@ -59,16 +96,19 @@ class KategoriResource extends Resource
         ])
         ->actions([
             Tables\Actions\EditAction::make(),
-            Tables\Actions\DeleteAction::make(),
+            Tables\Actions\DeleteAction::make()
+                ->modalHeading('Hapus Kategori')
+                ->modalDescription('Apakah Anda yakin ingin menghapus kategori ini?')
+                ->modalSubmitActionLabel('Ya, Hapus')
+                ->modalCancelActionLabel('Batal'),
         ])
         ->bulkActions([
-            Tables\Actions\DeleteBulkAction::make(),
+            Tables\Actions\DeleteBulkAction::make()
+                ->modalHeading('Hapus Beberapa Kategori')
+                ->modalDescription('Apakah Anda yakin ingin menghapus semua kategori yang dipilih?')
+                ->modalSubmitActionLabel('Ya, Hapus Semua')
+                ->modalCancelActionLabel('Batal'),
         ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [];
     }
 
     public static function getPages(): array
@@ -80,7 +120,7 @@ class KategoriResource extends Resource
         ];
     }
 
-    // 🛡️ Batasi akses hanya untuk admin
+    /** Batasi hanya admin */
     public static function canViewAny(): bool
     {
         return auth()->user()?->hasRole('admin');

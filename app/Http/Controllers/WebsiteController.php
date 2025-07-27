@@ -12,6 +12,7 @@ use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Booking;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -28,9 +29,10 @@ use Carbon\Carbon;
 
 class WebsiteController extends Controller
 {
-     public function home(Request $request)
+    // Beranda utama
+    public function home(Request $request)
     {
-
+    
     $allKategori = Kategori::orderBy('id')->get();
     $kategoriUtama = $allKategori->take(4);
 
@@ -65,12 +67,16 @@ class WebsiteController extends Controller
         'populer'       => $populer,
         'penikmat'      => $penikmat,
         'periodeBulan'  => $periodeBulan, // kirim ke view biar bisa ditampilkan
-    ]);
-        
+    ]);  
     }
 
+    // Riwayat peminjaman anggota
     public function riwayatPeminjaman($id, Request $request)
     {
+    // Jika user login & bukan anggota → tolak
+    // if (auth()->check() && !auth()->user()->hasRole('anggota')) {
+    //     abort(403, 'Halaman ini hanya untuk anggota atau pengunjung.');
+    // }
     $periode = $request->periode ?? 6; // default 6 bulan
     $startDate = now()->subMonths($periode);
 
@@ -91,9 +97,15 @@ class WebsiteController extends Controller
     ]);
     }
     
+    // Katalog buku dengan filter
     public function katalogBuku(Request $request)
     {
-        
+    // Jika user login & bukan anggota → tolak
+    // if (auth()->check() && !auth()->user()->hasRole('anggota')) {
+    //     abort(403, 'Halaman ini hanya untuk anggota atau pengunjung.');
+    // }
+
+    // ✅ Query dasar dengan relasi kategori & penerbit
     $query = Buku::query()->with('kategori', 'penerbit');
 
     // --- Filter kategori ---
@@ -132,9 +144,10 @@ class WebsiteController extends Controller
         });
     }
 
-    $bukus = $query->paginate(6)->withQueryString();
+    // ✅ Ambil hasil dengan pagination
+    $bukus = $query->paginate(10)->withQueryString();
 
-    // ✅ Pastikan array, bukan Collection
+    // ✅ Data untuk filter
     $tahunList  = Buku::selectRaw('YEAR(tahun_terbit) as tahun')
                     ->distinct()
                     ->orderBy('tahun', 'desc')
@@ -142,9 +155,9 @@ class WebsiteController extends Controller
                     ->toArray();
 
     $rakList    = Rak::pluck('name', 'id')->toArray();
-
     $bahasaList = Buku::select('bahasa')->distinct()->pluck('bahasa')->toArray();
 
+    // ✅ Kirim ke view katalog
     return view('katalog', compact(
         'bukus',
         'tahunList',
@@ -157,20 +170,45 @@ class WebsiteController extends Controller
     ));
     }
 
+    // Detail buku
     public function detailBuku($id)
     {
-        $buku = Buku::with(['kategori', 'rak', 'penerbit'])->findOrFail($id);
-
+    // Jika user login & bukan anggota → tolak akses
+    // if (auth()->check() && !auth()->user()->hasRole('anggota')) {
+    //  abort(403, 'Halaman ini hanya untuk anggota atau pengunjung.');
+    // }
     
-    $sedangDipinjam = Peminjaman::where('buku_id', $buku->id)
-        ->whereIn('status', ['dipinjam', 'diperpanjang'])
-        ->sum('jumlah_buku');
+    $buku = Buku::findOrFail($id);
+    $sedangDipinjam = false; // atau sesuai kebutuhanmu
 
-    return view('detail-buku', compact('buku', 'sedangDipinjam'));
+    $sudahBooking = false;
+    $jumlahBooking = 0;
+
+    if (Auth::check() && Auth::user()->hasRole('anggota')) {
+        $anggotaId = Auth::user()->anggota->id;
+
+        $sudahBooking = Booking::where('anggota_id', $anggotaId)
+            ->where('buku_id', $buku->id)
+            ->whereIn('status', ['booking', 'dipinjam'])
+            ->exists();
+
+        $jumlahBooking = Booking::where('anggota_id', $anggotaId)
+            ->where('status', 'booking')
+            ->count();
     }
 
+    return view('detail-buku', compact('buku', 'sedangDipinjam', 'sudahBooking', 'jumlahBooking'));
+    }
+
+
+    // Detail buku versi JSON (untuk AJAX)
     public function detailBukuJson($id)
     {
+    // Jika user login & bukan anggota → tolak akses
+    // if (auth()->check() && !auth()->user()->hasRole('anggota')) {
+    //  abort(403, 'Halaman ini hanya untuk anggota atau pengunjung.');
+    // }
+    
     $buku = Buku::with(['kategori', 'rak', 'penerbit'])->findOrFail($id);
 
     // Hitung berapa sedang dipinjam (status 'dipinjam')
@@ -211,19 +249,20 @@ class WebsiteController extends Controller
                             ? asset('storage/'.$buku->gambar)
                             : asset('storage/no-cover.png'),
 
-        // ✅ Info stok
+        // Info stok
         'stok_total'    => $totalStok,
         'dipinjam'      => $dipinjamCount,
         'tersedia'      => $tersedia,
         'stok_format'   => "{$tersedia}/{$totalStok}",
 
-        // ✅ Info total anggota yg pernah pinjam
+        // Info total anggota yg pernah pinjam
         'total_peminjam_unique' => $totalPeminjamUnique,
 
         'peminjam' => $peminjam
     ]);
     }
 
+    // Pencarian buku
     public function searchBuku(Request $request)
     {
         $keyword = $request->input('q');
@@ -234,17 +273,32 @@ class WebsiteController extends Controller
         return view('website.buku.index', compact('bukus'));
     }
 
+    // Daftar pustakawan (admin/petugas)
     public function pustakawan()
     {
-       $pustakawan = User::role('pustakawan')->get(); 
+        // Jika user login & bukan anggota → tolak akses
+        // if (auth()->check() && !auth()->user()->hasRole('anggota')) {
+        //     abort(403, 'Halaman ini hanya untuk anggota atau pengunjung.');
+        // }
 
+        // Ambil semua user dengan role admin, kepala sekolah, atau pustakawan
+        $pustakawan = User::role(['admin', 'kepala_sekolah', 'pustakawan'])->get();
+
+        // Kirim ke view
         return view('pustakawan', compact('pustakawan'));
     }
 
+    // Denah perpustakaan
     public function denah()
-{
-    return view('denah-perpustakaan');
-}
+    {
+        
+    // Jika user login & bukan anggota → tolak akses
+    // if (auth()->check() && !auth()->user()->hasRole('anggota')) {
+    //     abort(403, 'Halaman ini hanya untuk anggota atau pengunjung.');
+    // }
 
-    
+    // Kalau guest atau anggota → boleh akses
+    return view('denah-perpustakaan');
+    }   
+
 }

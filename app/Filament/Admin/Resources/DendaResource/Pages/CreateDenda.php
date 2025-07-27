@@ -14,4 +14,15 @@ class CreateDenda extends CreateRecord
     {
         return $this->getResource()::getUrl('index');
     }
+
+    // Hanya tampilkan tombol Create & Cancel (hilangkan Create & create another)
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction()
+                ->label('Simpan')   // Ubah label tombol Create jadi "Simpan"
+                ->submit('create'),
+            $this->getCancelFormAction(),
+        ];
+    }
 }

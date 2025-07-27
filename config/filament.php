@@ -100,8 +100,6 @@ return [
 
     'panel_providers' => [
         App\Providers\Filament\AdminPanelProvider::class,
-        App\Providers\Filament\PustakawanPanelProvider::class,
-        App\Providers\Filament\KepalaSekolahPanelProvider::class,
     ],
 
 ];

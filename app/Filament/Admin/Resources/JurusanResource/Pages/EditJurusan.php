@@ -18,7 +18,7 @@ class EditJurusan extends EditRecord
 
         // Jika ID diganti
         if ($data['id'] !== $oldId) {
-            // Validasi format Jxxx
+            // Validasi format ID (harus Jxxx)
             if (!preg_match('/^J\d{3}$/', $data['id'])) {
                 throw ValidationException::withMessages([
                     'id' => 'Format ID Jurusan harus seperti J001, J002, dst.',

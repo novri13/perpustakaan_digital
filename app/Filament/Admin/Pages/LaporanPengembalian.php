@@ -37,4 +37,9 @@ class LaporanPengembalian extends Page
 
         $this->showData = true; // ✅ Jangan lupa aktifkan ini
     }
+    
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasRole(['admin','pustakawan','kepala_sekolah']);
+    }
 }

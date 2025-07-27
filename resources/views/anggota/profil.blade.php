@@ -1,344 +1,265 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Profil Anggota</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profil Anggota - Perpustakaan Digital</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Font Awesome -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-  <!-- Bootstrap & FontAwesome -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
   <style>
-    body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; }
-
-    header, footer {
-      background: #ddd; padding: 15px 20px;
-      display: flex; justify-content: space-between; align-items: center;
+    html, body {
+      height: 100%;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      background-color: #f8f9fa;
     }
 
-    .breadcrumb {
-      background: #999; color: white;
-      padding: 10px 20px;
+    .main-container {
+      flex: 1;
+      display: flex;
     }
 
-    .container { display: flex; }
-
-    aside {
-      width: 220px; background: #eee;
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: linear-gradient(180deg, #0d6efd, #084298);
+      color: #fff;
       padding: 20px;
+      min-height: 100vh;
     }
 
-    .menu-item {
-      background: #ccc;
-      margin-bottom: 10px;
-      padding: 10px;
-      border-radius: 4px;
+    .sidebar h4 {
+      font-size: 18px;
+      margin-bottom: 30px;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    .sidebar .nav-link {
+      color: #cfd8dc;
+      padding: 12px 15px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s ease;
+    }
+    .sidebar .nav-link:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+    .sidebar .nav-link.active {
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
       font-weight: bold;
     }
+    .sidebar .nav-link i {
+      width: 20px;
+      text-align: center;
+    }
 
-    .menu-item.active { background: #999; }
-
+    /* Konten */
     main {
       flex: 1;
       padding: 30px;
     }
-
-    .card {
-      background: white;
-      border: 1px solid #aaa;
-      padding: 20px;
-      border-radius: 6px;
-      max-width: 850px;
-    }
-
-    .profile-grid {
-      display: grid;
-      grid-template-columns: 200px auto;
-      gap: 15px;
-    }
-
-    .profile-grid img {
-      width: 100%;
-      height: auto;
-      border: 1px solid #ccc;
-      background: #f2f2f2;
-      border-radius: 8px; /* biar lebih estetis */
-      object-fit: cover; /* agar proporsional */
-    }
-
-    .profile-fields {
-      display: grid;
-      grid-template-columns: 180px auto;
-      row-gap: 10px;
-      column-gap: 10px;
-    }
-
-    .profile-fields label {
-      font-weight: bold;
-      text-align: right;
-    }
-
-    .profile-fields input {
-      padding: 6px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      width: 100%;
-    }
-
-    .profile-fields input[readonly] {
-      background: #f9f9f9;
-      pointer-events: none; /* Tidak bisa diklik/diseleksi */
-      user-select: none;   /* Tidak bisa di-highlight */
-      cursor: default;
-    }
-
-    .actions {
-      margin-top: 20px;
-      text-align: right;
-    }
-
-    .btn {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .btn-primary {
-      background: #007bff;
-      color: white;
-    }
-
-    .btn-secondary {
-      background: #aaa;
-      color: white;
-    }
-
-    footer {
+    .breadcrumb-custom {
+      background: #e9ecef;
+      padding: 10px 20px;
+      border-radius: 8px;
       font-size: 14px;
-      background: #444;
-      color: white;
-      justify-content: space-around;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .jam-tanggal {
+      text-align: right;
+      font-size: 13px;
+      color: #555;
+      line-height: 1.2;
+    }
+    .jam-tanggal i {
+      color: #0d6efd;
+      margin-right: 5px;
     }
 
-    footer div {
-      max-width: 33%;
+    .card-custom {
+      background: #fff;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
 
+    .profile-photo {
+      max-width: 200px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
+
+    footer.footer-custom {
+      background: #fff;
+      border-top: 1px solid #ddd;
+      padding: 15px 30px;
+      font-size: 14px;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    footer a {
+      text-decoration: none;
+      color: #555;
+    }
+    footer a:hover {
+      color: #0d6efd;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-4 py-2">
-  <div class="container-fluid">
-    <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
-      <img src="{{ asset('images/logo_perpus.png') }}" alt="Logo" width="50" class="me-2">
-      <div class="lh-sm">
-        <span class="fw-bold">Perpustakaan Digital</span><br>
-        <small>SMA Negeri 1 Bengkulu Selatan</small>
+  {{-- NAVBAR --}}
+  @include('layouts.partials.navbar')
+
+  <div class="main-container">
+
+    {{-- SIDEBAR --}}
+    @include('layouts.partials.sidebar')
+
+    <!-- KONTEN PROFIL -->
+    <main>
+
+      <!-- Breadcrumb + Jam -->
+      <div class="breadcrumb-custom">
+        <div>
+          <i class="fas fa-home me-1"></i> Beranda / Anggota / Profil
+        </div>
+        <div class="jam-tanggal">
+          <div><i class="fas fa-clock"></i> <span id="jam-digital"></span></div>
+          <div id="tanggal-digital"></div>
+        </div>
       </div>
-    </a>
 
-    <div class="ms-auto d-flex align-items-center gap-3">
-      <a class="nav-link" href="{{ route('home') }}">Beranda</a>
-      <a class="nav-link" href="{{ route('denah') }}">Denah Pustaka</a>
-      <a class="nav-link" href="{{ route('pustakawan') }}">Pustakawan</a>
+      <!-- Card Profil -->
+      <div class="card-custom">
+        <h2 class="mb-4">Profil Anggota</h2>
 
-      @guest
-        <a class="btn btn-primary" href="{{ route('anggota.login.form') }}">Login</a>
-      @else
-        @php
-          $user = auth()->user();
-          $unreadCount = $user->unreadNotifications->count();
-          $notifications = $user->notifications()->latest()->take(5)->get();
-        @endphp
+        <form action="{{ route('anggota.profil.update') }}" method="POST" enctype="multipart/form-data">
+          @csrf
+          @method('PUT')
 
-        <!-- Notifikasi Dropdown -->
-        <div class="dropdown me-3">
-          <a href="#" id="notifDropdown" class="text-dark position-relative" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="fas fa-bell fa-lg"></i>
-            @if($unreadCount > 0)
-              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                {{ $unreadCount }}
-              </span>
-            @endif
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="notifDropdown"
-              style="min-width: 300px; max-height: 350px; overflow-y: auto;">
-            <li class="dropdown-header fw-bold px-3 py-2">Notifikasi Terbaru</li>
+          <div class="row">
+            <!-- Foto Profil + Nama + NISN -->
+            <div class="col-md-3 text-center">
+              <img src="{{ $anggota->gambar ? asset('storage/' . $anggota->gambar) : asset('storage/no-cover.png') }}" 
+                   class="profile-photo" alt="Foto Profil">
 
-            @forelse($notifications as $notif)
-              <li class="px-3 py-2 border-bottom small">
-                <div class="fw-bold">{{ $notif->data['judul'] ?? '-' }}</div>
-                <div class="text-muted">{{ $notif->data['pesan'] ?? '' }}</div>
-                <small class="text-secondary">{{ $notif->created_at->diffForHumans() }}</small>
-              </li>
-            @empty
-              <li class="px-3 py-2 text-muted">Tidak ada notifikasi</li>
-            @endforelse
+              <!-- Nama & Info Singkat -->
+              <h5 class="mt-3 mb-1 fw-bold">{{ $anggota->nama }}</h5>
+              <p class="mb-1 text-secondary">{{ $anggota->id }}</p>
+              <span class="badge bg-primary">{{ ucfirst($anggota->jabatan) }}</span>
+            </div>
 
-            <li><hr class="dropdown-divider"></li>
-            <li><span class="dropdown-item text-center small text-muted">Menampilkan 5 notifikasi terakhir</span></li>
-          </ul>
-        </div>
+            <!-- Detail Profil -->
+            <div class="col-md-9">
+              <table class="table table-sm table-striped align-middle">
+                <tbody>
+                  <tr>
+                    <th width="200">Jurusan</th>
+                    <td>{{ $anggota->jurusan->nama ?? '-' }}</td>
+                  </tr>
+                  <tr>
+                    <th>Kelas</th>
+                    <td>{{ $anggota->kelas ?? '-' }}</td>
+                  </tr>
+                  <tr>
+                    <th>Jenis Kelamin</th>
+                    <td>{{ $anggota->jenkel == 'L' ? 'Laki-laki' : 'Perempuan' }}</td>
+                  </tr>
+                  <tr>
+                    <th>Alamat</th>
+                    <td>{{ $anggota->alamat ?? '-' }}</td>
+                  </tr>
+                  <tr>
+                    <th>No. Telepon</th>
+                    <td>{{ $anggota->no_telp ?? '-' }}</td>
+                  </tr>
+                  <tr>
+                    <th>Email</th>
+                    <td>{{ $anggota->email ?? '-' }}</td>
+                  </tr>
+                  <tr>
+                    <th>Status</th>
+                     <td>
+                      @if($anggota->status === 'aktif')
+                        <span class="badge bg-success px-3 py-2 rounded">Aktif</span>
+                      @else
+                        <span class="badge bg-danger px-3 py-2 rounded">{{ ucfirst($anggota->status) }}</span>
+                      @endif
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
 
-        <!-- Dropdown Profil -->
-        <div class="dropdown">
-          <a href="#" class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
-            @if($user->gambar)
-              <img src="{{ asset('storage/' . $user->gambar) }}" alt="Foto Profil" class="rounded-circle me-2" width="32" height="32">
-            @else
-              <i class="fas fa-user-circle fa-lg me-2"></i>
-            @endif
-            <span class="d-none d-md-inline">{{ $user->name }}</span>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownUser">
-            <li><a class="dropdown-item" href="{{ route('anggota.dashboard') }}">Dashboard</a></li>
-            <li><a class="dropdown-item" href="{{ route('anggota.profil') }}">Profil</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-              <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="dropdown-item">Logout</button>
-              </form>
-            </li>
-          </ul>
-        </div>
-      @endguest
-    </div>
+              <!-- Update Password -->
+              <div class="row mt-4">
+                <div class="col-md-6">
+                  <label>Password Baru</label>
+                  <input type="password" name="password" class="form-control" placeholder="Password baru (opsional)">
+                </div>
+                <div class="col-md-6">
+                  <label>Konfirmasi Password</label>
+                  <input type="password" name="password_confirmation" class="form-control" placeholder="Konfirmasi Password">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tombol Aksi -->
+          <div class="text-end mt-4">
+            <button type="reset" class="btn btn-secondary">Reset</button>
+            <button type="submit" class="btn btn-primary">Simpan</button>
+          </div>
+        </form>
+      </div>
+    </main>
   </div>
-</nav>
 
-<div class="breadcrumb">Beranda / Anggota</div>
+  {{-- FOOTER --}}
+  @include('layouts.partials.footer')
 
-<div class="container">
-   <aside class="bg-light p-3 border-end" style="min-height: 100vh; width: 220px;">
-  <nav class="nav flex-column gap-2">
+  <!-- Bootstrap Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Font Awesome -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
 
-    <a href="{{ route('anggota.dashboard') }}" class="nav-link d-flex align-items-center px-3 py-2 rounded text-dark">
-      <i class="fas fa-home me-2"></i> Dashboard
-    </a>
+  <!-- Jam Digital -->
+  <script>
+    function updateClock() {
+      const now = new Date();
+      const hariNama = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+      const bulanNama = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
-    <a href="{{ route('anggota.profil') }}" class="nav-link d-flex align-items-center px-3 py-2 rounded bg-secondary text-white">
-      <i class="fas fa-user me-2"></i> Profile
-    </a>
+      let hari = hariNama[now.getDay()];
+      let tanggal = now.getDate();
+      let bulan = bulanNama[now.getMonth()];
+      let tahun = now.getFullYear();
 
-    <a href="{{ route('anggota.history-transaksi') }}" class="nav-link d-flex align-items-center px-3 py-2 rounded text-dark">
-      <i class="fas fa-book-open me-2"></i> Riwayat Peminjaman
-    </a>
+      let jam = now.getHours().toString().padStart(2, '0');
+      let menit = now.getMinutes().toString().padStart(2, '0');
+      let detik = now.getSeconds().toString().padStart(2, '0');
 
-    <form action="{{ route('logout') }}" method="POST" class="w-100 m-0">
-      @csrf
-      <button type="submit" class="nav-link d-flex align-items-center px-3 py-2 rounded text-dark w-100 bg-transparent border-0 text-start">
-        <i class="fas fa-sign-out-alt me-2"></i> Logout
-      </button>
-    </form>
-
-  </nav>
-</aside>
-
-   <main>
-  <div class="card">
-    <h3>Profil Anggota</h3>
-    <form action="{{ route('anggota.profil.update') }}" method="POST" enctype="multipart/form-data">
-      @csrf
-      @method('PUT')
-
-      <div class="profile-grid">
-        <!-- Foto Profil -->
-        <img src="{{ $anggota->gambar ? asset('storage/' . $anggota->gambar) : 'https://via.placeholder.com/120' }}" alt="Foto Profil">
-
-        <div class="profile-fields">
-          <label>NIP/NISN:</label>
-          <input type="text" value="{{ $anggota->id }}" readonly>
-
-          <label>Nama:</label>
-          <input type="text" value="{{ $anggota->nama }}" readonly>
-
-          <label>Jurusan:</label>
-          <input type="text" value="{{ $anggota->jurusan->nama ?? '-' }}" readonly>
-
-          <label>Kelas:</label>
-          <input type="text" value="{{ $anggota->kelas ?? '-' }}" readonly>
-
-          <label>Jenis Kelamin:</label>
-          <input type="text" value="{{ $anggota->jenkel == 'L' ? 'Laki-laki' : 'Perempuan' }}" readonly>
-
-          <label>Alamat:</label>
-          <input type="text" value="{{ $anggota->alamat ?? '-' }}" readonly>
-
-          <label>No Tel Siswa:</label>
-          <input type="text" value="{{ $anggota->no_telp ?? '-' }}" readonly>
-
-          <label>Email:</label>
-          <input type="text" value="{{ $anggota->email ?? '-' }}" readonly>
-
-          <label>Jabatan:</label>
-          <input type="text" value="{{ ucfirst($anggota->jabatan) }}" readonly>
-
-          <label>Status:</label>
-          <input type="text" value="{{ ucfirst($anggota->status) }}" readonly>
-
-          <label>Password Baru:</label>
-          <input type="password" name="password" placeholder="Password baru (opsional)">
-
-          <label>Konfirmasi Password:</label>
-          <input type="password" name="password_confirmation" placeholder="Konfirmasi Password">
-        </div>
-      </div>
-
-      <div class="actions">
-        <button type="reset" class="btn btn-secondary">Reset</button>
-        <button type="submit" class="btn btn-primary">Update</button>
-      </div>
-    </form>
-  </div>
-</main>
-</div>
-
-<footer>
-    <div>
-      <img src="{{ asset('images/logo_perpus.png') }}" alt="logo" width="60" class="d-block mx-auto mb-2">
-      <strong>SMA NEGERI 1 BENGKULU SELATAN</strong><br>
-      Alamat: Jln. Pangeran Duayu Manna
-    </div>
-    <div>
-      <strong>Tentang Kami</strong><br>
-      Perpustakaan digital SMANSA menyajikan beragam koleksi buku, memenuhi kebutuhan anggota untuk sumber belajar dan referensi.
-    </div>
-    <div>
-      <strong>Kontak</strong><br>
-      Telp: (0739)21296 / Fax: (0739)2268<br>
-      E-Mail: smanegeri1bs@gmail.com<br>
-      Website: <a href="https://sman1bs.sch.id/" style="color: white;">https://sman1bs.sch.id/</a>
-    </div>
-  </footer>
-
-<script>
-  function updateProfile() {
-    const password = document.querySelectorAll("input[type=password]")[0].value;
-    const confirm = document.querySelectorAll("input[type=password]")[1].value;
-
-    if (password && password !== confirm) {
-      alert("Konfirmasi password tidak cocok.");
-      return;
+      document.getElementById('jam-digital').textContent = `${jam}:${menit}:${detik}`;
+      document.getElementById('tanggal-digital').textContent = `${hari}, ${tanggal} ${bulan} ${tahun}`;
     }
+    setInterval(updateClock, 1000);
+    updateClock();
+  </script>
 
-    alert("Profil berhasil diperbarui!");
-    // Kirim ke Laravel pakai AJAX atau submit form (jika disiapkan)
-  }
-
-  function batalEdit() {
-    if (confirm("Yakin batal mengubah profil?")) {
-      location.reload();
-    }
-  }
-</script>
-<!-- Font Awesome (untuk icon user & bell) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
-
-<!-- Bootstrap Bundle (sudah termasuk Popper.js) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
- 

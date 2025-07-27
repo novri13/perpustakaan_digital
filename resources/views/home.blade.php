@@ -1,11 +1,40 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <!-- ============================================
-       STYLE GLOBAL & KOMPONEN
-       (Hanya penataan ulang / indentasi. Tidak ada perubahan properti.)
-       ============================================ -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Perpustakaan Digital</title>
+  <link rel="icon" href="{{ asset('images/logo_perpus.png') }}">
+
+  <!-- Bootstrap & FontAwesome -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
   <style>
+     /* Efek hover underline elegan */
+  .hover-underline {
+    position: relative;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .hover-underline::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    width: 0;
+    height: 2px;
+    background: #0d6efd;
+    transition: width 0.3s ease;
+  }
+  .hover-underline:hover::after {
+    width: 100%;
+  }
+
+    footer a:hover {
+    color: #0d6efd !important; /* efek hover biru elegan */
+  }
+    
     /* Judul buku (versi 1 - dari kode asli) */
     .book-title {
       font-size: 0.85rem;        /* lebih kecil dari default */
@@ -106,130 +135,28 @@
     }
   </style>
 
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Perpustakaan Digital</title>
-  <link rel="icon" href="{{ asset('images/logo_perpus.png') }}">
-
-  <!-- Bootstrap & FontAwesome -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body class="bg-light">
   @php use Illuminate\Support\Str; @endphp
 
-  <!-- ============================================ -->
-  <!-- NAVBAR HEADER                                 -->
-  <!-- ============================================ -->
-  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-4 py-2">
-    <div class="container-fluid">
-      <!-- Brand / Logo Sekolah -->
-      <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
-        <img src="{{ asset('images/logo_perpus.png') }}" alt="Logo" width="50" class="me-2">
-        <div class="lh-sm">
-          <span class="fw-bold">Perpustakaan Digital</span><br>
-          <small>SMA Negeri 1 Bengkulu Selatan</small>
-        </div>
-      </a>
+    {{-- NAVBAR --}}
+    @include('layouts.partials.navbar')  
 
-      <!-- Link kanan: menu statis + auth -->
-      <div class="ms-auto d-flex align-items-center gap-3">
-        <a class="nav-link text-primary" href="{{ route('home') }}">Beranda</a>
-        <a class="nav-link" href="{{ route('denah') }}">Denah Pustaka</a>
-        <a class="nav-link" href="{{ route('pustakawan') }}">Pustakawan</a>
-
-        @guest
-          <!-- Login saat belum auth -->
-          <a class="btn btn-primary" href="{{ route('anggota.login.form') }}">Login</a>
-        @else
-          @php
-            $user = auth()->user();
-            $unreadCount = $user->unreadNotifications->count();
-            $notifications = $user->notifications()->latest()->take(5)->get();
-          @endphp
-
-          <!-- Notifikasi Dropdown -->
-          <div class="dropdown me-3">
-            <a href="#" id="notifDropdown" class="text-dark position-relative" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="fas fa-bell fa-lg"></i>
-              @if($unreadCount > 0)
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                  {{ $unreadCount }}
-                </span>
-              @endif
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="notifDropdown"
-                style="min-width: 300px; max-height: 350px; overflow-y: auto;">
-              <li class="dropdown-header fw-bold px-3 py-2">Notifikasi Terbaru</li>
-
-              @forelse($notifications as $notif)
-                <li class="px-3 py-2 border-bottom small">
-                  <div class="fw-bold">{{ $notif->data['judul'] ?? '-' }}</div>
-                  <div class="text-muted">{{ $notif->data['pesan'] ?? '' }}</div>
-                  <small class="text-secondary">{{ $notif->created_at->diffForHumans() }}</small>
-                </li>
-              @empty
-                <li class="px-3 py-2 text-muted">Tidak ada notifikasi</li>
-              @endforelse
-
-              <li><hr class="dropdown-divider"></li>
-              <li><span class="dropdown-item text-center small text-muted">Menampilkan 5 notifikasi terakhir</span></li>
-            </ul>
-          </div>
-
-          <!-- Dropdown Profil User -->
-          <div class="dropdown">
-            <a href="#" class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
-              @if($user->gambar)
-                <img src="{{ asset('storage/' . $user->gambar) }}" alt="Foto Profil" class="rounded-circle me-2" width="32" height="32">
-              @else
-                <i class="fas fa-user-circle fa-lg me-2"></i>
-              @endif
-              <span class="d-none d-md-inline">{{ $user->name }}</span>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownUser">
-              <li><a class="dropdown-item" href="{{ route('anggota.dashboard') }}">Dashboard</a></li>
-              <li><a class="dropdown-item" href="{{ route('anggota.profil') }}">Profil</a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li>
-                <form method="POST" action="{{ route('logout') }}">
-                  @csrf
-                  <button type="submit" class="dropdown-item">Logout</button>
-                </form>
-              </li>
-            </ul>
-          </div>
-        @endguest
-      </div>
-    </div>
-  </nav>
-
-  <!-- ============================================ -->
   <!-- HERO / WELCOME SECTION                       -->
-  <!-- ============================================ -->
   <div class="bg-secondary text-white text-center py-4">
     <h4>Selamat Datang</h4>
     <p>Di Perpustakaan Digital SMA Negeri 1 Bengkulu Selatan<br>NPSN : 10700973</p>
   </div>
 
-  {{-- <!-- Search (versi lama dikomentari) -->
-  <div class="container py-3">
-    <input type="text" class="form-control" placeholder="Masukkan Kata Kunci Untuk Mencari Buku">
-  </div> --}}
-
-  <!-- ============================================ -->
   <!-- BREADCRUMB & SEARCH FORM                      -->
-  <!-- ============================================ -->
   <div class="container py-3">
     <form method="GET" action="{{ route('katalog') }}" class="w-100">
       <input type="text" name="q" class="form-control" placeholder="Masukkan Kata Kunci Untuk Mencari Buku">
     </form>
   </div>
 
-  <!-- ============================================ -->
   <!-- KATEGORI UTAMA (4 pertama + tombol lainnya)   -->
-  <!-- ============================================ -->
   <div class="bg-secondary text-white py-3">
     <div class="container">
       <h5 class="text-center mb-3">Pilih kategori yang kamu suka</h5>
@@ -269,9 +196,7 @@
     </div>
   </div>
 
-  <!-- ============================================ -->
   <!-- MODAL: SEMUA KATEGORI                         -->
-  <!-- ============================================ -->
   <div class="modal fade kategori-modal-anim" id="kategoriModal" tabindex="-1" aria-labelledby="kategoriModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
       <div class="modal-content shadow-lg">
@@ -304,9 +229,7 @@
     </div>
   </div>
 
-  <!-- ============================================ -->
   <!-- BUKU POPULER                                  -->
-  <!-- ============================================ -->
   <div class="container py-4">
     <h5>Buku yang populer</h5>
     <p>Buku yang sering dipinjam oleh anggota perpustakaan.</p>
@@ -337,9 +260,7 @@
     </div>
   </div>
 
-  <!-- ============================================ -->
   <!-- KOLEKSI BUKU TERBARU & ANGOTA RAJIN          -->
-  <!-- ============================================ -->
   <div class="container py-4">
     <div class="row g-4">
 
@@ -514,39 +435,10 @@
     </div><!-- /.row -->
   </div><!-- /.container py-4 -->
 
-  <!-- ============================================ -->
-  <!-- FOOTER INFORMASI SEKOLAH                     -->
-  <!-- ============================================ -->
-  <footer class="bg-white text-dark py-4 border-top">
-    <div class="container">
-      <div class="row text-center text-md-start">
-        <div class="col-md-4 mb-3 text-center">
-          <img src="{{ asset('images/logo_perpus.png') }}" alt="Logo" width="60" class="mb-2 mx-auto d-block">
-          <h6 class="mt-2">SMA NEGERI 1 BENGKULU SELATAN</h6>
-          <p>Alamat: Jln. Pangeran Duayu Manna</p>
-        </div>
-        <div class="col-md-4 mb-3">
-          <h6>Tentang Kami</h6>
-          <p>Perpustakaan digital SMANSA menyajikan beragam koleksi buku, memenuhi kebutuhan anggota untuk belajar dan referensi.</p>
-        </div>
-        <div class="col-md-4 mb-3">
-          <h6>Kontak</h6>
-          <p>Telp. (0739)21296 / Fax.(0739)2268<br>
-          E-Mail: smanegeri1bs@gmail.com<br>
-          Website: https://sman1bs.sch.id</p>
-        </div>
-      </div>
-      <hr>
-      <div class="text-center small">
-        SMA Negeri 1 Bengkulu Selatan - © SiPertal 2025 | Version 1.0
-      </div>
-    </div>
-  </footer>
+    {{-- FOOTER --}}
+    @include('layouts.partials.footer')
 
-
-  <!-- ============================================ -->
   <!-- SCRIPT: SCROLL MANUAL (BUKU POPULER / DLL)   -->
-  <!-- ============================================ -->
   <script>
     function scrollLeft(id) {
       const container = document.getElementById(id);
@@ -565,10 +457,7 @@
   <!-- Bootstrap Bundle (sudah termasuk Popper.js) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- ============================================ -->
-  <!-- SCRIPT: SCROLL (DUA VERSI - DARI KODE ASLI)   -->
   <!-- Versi kedua scrollLeft/scrollRight dipertahankan apa adanya -->
-  <!-- ============================================ -->
   <script>
     function scrollLeft(id) {
       document.getElementById(id).scrollBy({ left: -150, behavior: 'smooth' });
@@ -611,9 +500,7 @@
     });
   </script>
 
-  <!-- ============================================ -->
   <!-- SCRIPT: FETCH RIWAYAT PEMINJAMAN ANGGOTA     -->
-  <!-- ============================================ -->
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       const periode = "{{ $periodeBulan }}"; // ambil periode dari dropdown
@@ -669,9 +556,7 @@
     });
   </script>
 
-  <!-- ============================================ -->
   <!-- SCRIPT: SHOW DETAIL BUKU (FETCH JSON)        -->
-  <!-- ============================================ -->
   <script>
     function showDetailBuku(url) {
       fetch(url)
@@ -716,9 +601,7 @@
     }
   </script>
 
-  <!-- ============================================ -->
   <!-- SCRIPT: CAROUSEL GESER 1 ITEM                -->
-  <!-- ============================================ -->
   <script>
     let carouselPos = 0; // posisi awal
 

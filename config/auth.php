@@ -36,14 +36,27 @@ return [
     */
 
     'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
+    'web' => [
+        'driver' => 'session',
+        'provider' => 'users',
+    ],
+
+    'anggota' => [
+        'driver' => 'session',
+        'provider' => 'anggota',
+    ],
+    ],
+
+    'providers' => [
+        'users' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\User::class,
         ],
-        // 'anggota' => [
-        //     'driver' => 'session',
-        //     'provider' => 'anggotas',
-        // ],
+
+        'anggota' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Anggota::class,
+        ],
     ],
 
     /*

@@ -69,12 +69,38 @@
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #222;
     }
     .footer-text {
       margin-top: 20px;
       font-size: 13px;
       color: #0044cc;
       font-style: italic;
+    }
+    .login-switch {
+      margin-top: 15px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .login-switch a {
+      flex: 1;
+      text-decoration: none;
+      background-color: #007bff;
+      color: #fff;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      transition: background-color 0.3s;
+      text-align: center;
+      display: inline-block;
+    }
+    .login-switch a:hover {
+      background-color: #0056b3;
     }
   </style>
 </head>
@@ -86,29 +112,40 @@
     <small>Masukkan NISN/NIP dan password untuk login</small>
 
     <form action="{{ route('anggota.login.submit') }}" method="POST">
-      @csrf
-      @if ($errors->any())
+    @csrf
 
-      <small style="display:block; margin:10px 0; color:red;">
-          @foreach ($errors->all() as $error)
-        {{ $error }}<br>
-          @endforeach
-      </small>
-      @endif
+    {{-- Redirect back --}}
+    @if(request('redirect'))
+        <input type="hidden" name="redirect" value="{{ request('redirect') }}">
+    @endif
 
-      <div class="input-group">
+    @if ($errors->any())
+        <small style="display:block; margin:10px 0; color:red;">
+            @foreach ($errors->all() as $error)
+                {{ $error }}<br>
+            @endforeach
+        </small>
+    @endif
+
+    <div class="input-group">
         <i class="fas fa-id-card icon"></i>
         <input type="text" name="nisn" placeholder="NISN atau NIP" value="{{ old('nisn') }}" required>
-      </div>
-      <div class="input-group">
+    </div>
+    <div class="input-group">
         <i class="fas fa-lock icon"></i>
         <input type="password" name="password" placeholder="Password" required>
-      </div>
-      <button type="submit">Log In</button>
+    </div>
+    <button type="submit">Log In</button>
     </form>
 
     <div class="footer-text">
       Dikembangkan Oleh SMA Negeri 1 Bengkulu Selatan - 2025
+    </div>
+
+    <!-- Tombol Login Admin dan Anggota -->
+    <div class="login-switch">
+      <a class="btn btn-primary" href="{{ url('/admin') }}">Login Untuk Admin</a>
+      {{-- <a class="btn btn-primary" href="{{ route('anggota.login.form') }}">Login Anggota</a> --}}
     </div>
   </div>
 </body>

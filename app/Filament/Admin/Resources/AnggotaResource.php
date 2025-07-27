@@ -26,6 +26,17 @@ class AnggotaResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
     protected static ?string $navigationGroup = 'Data Master';
     protected static ?string $navigationLabel = 'Anggota Perpustakaan';
+    protected static ?int $navigationSort = 5;
+
+    public static function getLabel(): ?string
+    {
+        return 'Anggota';
+    }
+
+    public static function getPluralLabel(): ?string
+    {
+        return 'Anggota';
+    }
 
     public static function form(Form $form): Form
     {
@@ -100,7 +111,11 @@ class AnggotaResource extends Resource
         ])
         ->actions([
             Tables\Actions\EditAction::make(),
-            Tables\Actions\DeleteAction::make(),
+            Tables\Actions\DeleteAction::make()
+            ->modalHeading('Hapus Anggota')
+                ->modalDescription('Apakah Anda yakin ingin menghapus Anggota ini? Tindakan ini tidak dapat dibatalkan.')
+                ->modalSubmitActionLabel('Ya, Hapus')
+                ->modalCancelActionLabel('Batal'),
 
             Action::make('showKartu')
                 ->label('Detail')
@@ -114,7 +129,11 @@ class AnggotaResource extends Resource
                 }),
                 ])
                 ->bulkActions([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                    ->modalHeading('Hapus Beberapa Anggota')
+                    ->modalDescription('Apakah Anda yakin ingin menghapus semua anggota yang dipilih?')
+                    ->modalSubmitActionLabel('Ya, Hapus Semua')
+                    ->modalCancelActionLabel('Batal'),
                 ]);
     }
 

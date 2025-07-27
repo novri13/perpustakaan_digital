@@ -9,9 +9,18 @@ use Livewire\Component;
 class PeminjamanBulanan extends Component
 {
     public $labels = [];
-    public $data = [];
+    public $peminjamanData = [];
+    public $pengembalianData = [];
+    public $tahun;
 
-    public function mount()
+    public function mount($tahun = null)
+    {
+        // Default tahun = tahun berjalan
+        $this->tahun = $tahun ?? now()->year;
+        $this->generateChartData();
+    }
+
+    public function updatedTahun()
     {
         $this->generateChartData();
     }
@@ -19,19 +28,27 @@ class PeminjamanBulanan extends Component
     public function generateChartData()
     {
         $this->labels = [];
-        $this->data = [];
+        $this->peminjamanData = [];
+        $this->pengembalianData = [];
 
-        for ($i = 0; $i < 6; $i++) {
-            $month = Carbon::now()->subMonths($i)->format('Y-m');
-            $this->labels[] = Carbon::now()->subMonths($i)->format('M Y');
-            $this->data[] = Peminjaman::where('status', 'dipinjam')
-                ->whereYear('tanggal_pinjam', Carbon::parse($month)->year)
-                ->whereMonth('tanggal_pinjam', Carbon::parse($month)->month)
+        // 12 bulan
+        for ($bulan = 1; $bulan <= 12; $bulan++) {
+            $this->labels[] = Carbon::create()->month($bulan)->format('M');
+
+            // Hitung peminjaman per bulan (created_at)
+            $pinjam = Peminjaman::whereYear('created_at', $this->tahun)
+                ->whereMonth('created_at', $bulan)
                 ->count();
-        }
 
-        $this->labels = array_reverse($this->labels);
-        $this->data = array_reverse($this->data);
+            // Hitung pengembalian per bulan (updated_at + status kembali)
+            $kembali = Peminjaman::where('status', 'kembali')
+                ->whereYear('updated_at', $this->tahun)
+                ->whereMonth('updated_at', $bulan)
+                ->count();
+
+            $this->peminjamanData[] = $pinjam;
+            $this->pengembalianData[] = $kembali;
+        }
     }
 
     public function render()

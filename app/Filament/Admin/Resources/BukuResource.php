@@ -27,6 +27,17 @@ class BukuResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-book-open';
     protected static ?string $navigationGroup = 'Data Master';
     protected static ?string $navigationLabel = 'Data Buku';
+    protected static ?int $navigationSort = 4;
+
+    public static function getLabel(): ?string
+    {
+        return 'Buku';
+    }
+
+    public static function getPluralLabel(): ?string
+    {
+        return 'Buku';
+    }
 
     public static function form(Form $form): Form
     {
@@ -98,6 +109,6 @@ class BukuResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return auth()->user()?->hasRole('admin');
+        return auth()->user()?->hasRole(['admin','pustakawan']);
     }
 }

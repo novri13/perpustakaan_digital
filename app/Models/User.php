@@ -51,4 +51,14 @@ class User extends Authenticatable
     {
     return $this->hasOne(Anggota::class, 'user_id', 'id');
     }
+
+    // public function notifikasi()
+    // {
+    // return $this->hasMany(Notifikasi::class, 'user_id');
+    // }
+    
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class, 'anggota_id');
+    }
 }
